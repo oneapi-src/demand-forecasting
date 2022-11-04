@@ -1,0 +1,17 @@
+# conf.yaml
+version: 1.0
+
+model: 
+    name: demand_forecast
+    framework: tensorflow
+
+quantization:
+    approach: post_training_static_quant
+
+tuning:
+        accuracy_criterion:
+                relative: 0.05
+                higher_is_better: False
+        exit_policy:
+                timeout: 1000000
+                max_trials : 3000

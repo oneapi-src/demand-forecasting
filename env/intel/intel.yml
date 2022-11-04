@@ -1,0 +1,11 @@
+name: intel
+channels:
+  - intel
+dependencies:
+  - intelpython3_core==2022.2.0
+  - pip==22.1.2
+  - pandas==1.4.1
+  - scikit-learn==1.0.1
+  - pip:
+    - tensorflow==2.10.0
+    - neural-compressor==1.13
