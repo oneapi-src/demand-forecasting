@@ -47,7 +47,6 @@ The reference kit implementation is a reference solution to the described use ca
 | :---: | :---: |
 | ***Date***, **Store**, **Item**, ***Sales*** <br> 1-1-2010, 1, 1, 5 <br> 1-2-2010, 1, 1, 7 <br> 1-3-2010, 1, 1, 9 <br> 1-4-2010, 1, 1, 11 <br> 1-1-2010, 2, 1, 10 <br> 1-2-2010, 2, 1, 15 <br> 1-3-2010, 2, 1, 20 <br> 1-4-2010, 2, 1, 25 |***Date***, ***Store***, ***Item***, ***Predicted Demand*** <br> 1-5-2010, 13 <br> 1-5-2010, 30
 
-
 ### Dataset
 
 The dataset used for this demo is a synthetic set of daily purchase counts over a period of 5 years characterized by `date`,`item`,`store`,`sales`, where each feature corresponds to:
@@ -116,85 +115,6 @@ For the workload implementation to arrive at first level reference solution we w
 
 ### Reference Implementation
 
-#### Model Building Process
-
-As described above, we first transform the data to the regression format expected and feed this data into our
-CNN-LSTM model.  The `run_training.py` script *reads and preprocesses the data*, *trains the model*, and *saves the model* which can be used for future inference.
-
-The script takes the following arguments:
-
-```shell
-usage: run_training.py [-h] [-l LOGFILE] [-s SAVE_MODEL_DIR] [-i] [-b BATCH_SIZE]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -l LOGFILE, --logfile LOGFILE
-                        log file to output benchmarking results to
-  -s SAVE_MODEL_DIR, --save_model_dir SAVE_MODEL_DIR
-                        directory to save model to
-  -i, --intel           use intel configs
-  -b BATCH_SIZE, --batch_size BATCH_SIZE
-                        training batch size
-```
-As an example of using this to train a model, we can run the following commands from the `/src` directory:
-
-```shell
-conda activate demand_stock
-python run_training.py --save_model_dir saved_models/stock --batch_size 512
-```
-which will produce a saved model in Tensorflow Keras format to the `saved_models/stock` directory which can be used in the next step for running inference.
-
-### Running Inference
-
-The above script will train and save models to the `save_model_dir`.  To use this model to make predictions on new data, a 2-step process is necessary to optimize performance.  
-
-1. Convert the saved model from a Keras saved model to a Tensorflow frozen graph.  To do this, we provide a utility script `convert_keras_to_frozen_graph.py` which takes the following arguments:
-
-```shell
-usage: convert_keras_to_frozen_graph.py [-h] -s KERAS_SAVED_MODEL_DIR -o OUTPUT_SAVED_DIR
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -s KERAS_SAVED_MODEL_DIR, --keras_saved_model_dir KERAS_SAVED_MODEL_DIR
-                        directory with saved keras model.
-  -o OUTPUT_SAVED_DIR, --output_saved_dir OUTPUT_SAVED_DIR
-                        directory to save frozen graph to.
-```
-
-For the above saved model, we would run the command
-
-```shell
-python convert_keras_to_frozen_graph.py -s saved_models/stock -o saved_models/stock
-```
-which **takes in the saved keras model** and outputs a **frozen graph** in the same directory called `saved_models/stock/saved_frozen_model.pb`.
-
-2. Once a saved frozen graph is saved, this model can now be used to perform inference using the `run_inference.py` script which has the following arguments:
-
-```shell
-usage: run_inference.py [-h] [-l LOGFILE] [-s SAVED_FROZEN_MODEL] [-b BATCH_SIZE] --input_file INPUT_FILE [--benchmark_mode] [-n NUM_ITERS]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -l LOGFILE, --logfile LOGFILE
-                        log file to output benchmarking results to
-  -s SAVED_FROZEN_MODEL, --saved_frozen_model SAVED_FROZEN_MODEL
-                        saved frozen graph.
-  -b BATCH_SIZE, --batch_size BATCH_SIZE
-                        batch size to use
-  --input_file INPUT_FILE
-  --benchmark_mode      benchmark inference time
-  -n NUM_ITERS, --num_iters NUM_ITERS
-                        number of iterations to use when benchmarking
-```
-
-To run inference on a new data file, included for reference as `../data/demand/test_full.csv`:
-
-```shell
-python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model saved_models/stock/saved_frozen_model.pb --batch_size 512
-```
-
-which outputs a json representation of the predicted values.
-
 ## Optimizing the E2E Reference Solution with Intel® oneAPI
 
 On a production scale implementation with millions or billions of records it is necessary to optimize compute power without leaving any performance on the table.  To utilize all the hardware resources efficiently, software optimizations cannot be ignored.   
@@ -204,7 +124,6 @@ This reference kit solution extends to demonstrate the advantages of using the I
 ### Optimized E2E Architecture with Intel® oneAPI Components
 
 ![Use_case_flow](assets/e2e-flow-optimized.png)
-
 
 ### Optimized Software Components
 
@@ -238,65 +157,15 @@ This script utilizes the dependencies found in the `env/intel/intel.yml` file to
 
 Intel® Optimizations for Tensorflow include Intel oneDNN.  **By default, Intel oneDNN optimizations are enabled as of Tensorflow v2.9.**
 
-#### Model Building Process with Intel® Optimizations
+## **Jupyter Notebook Demo**
+You can directly access the Jupyter notebook shared in this repo [here](GettingStarted.ipynb).
 
-The above Intel optimizations are enabled by simply using Tensorflow >= v2.9. The `run_training.py` script can be run with no code changes otherwise. The same training process can be run, optimized with Intel® oneAPI as follows:
-
-```shell
-conda activate demand_intel
-python run_training.py --save_model_dir saved_models/intel --batch_size 512
+To launch your own instance, activate either one of the `stock` or `intel` environments created in this readme and execute the following command.
+```sh
+jupyter notebook
 ```
 
-#### Model Inference with Intel® Optimizations
-
-Similar to model training, the 2 steps of for inference (saving a frozen graph and running inference) is identical with by running the scripts.  Specifically, we can run
-
-```shell
-python convert_keras_to_frozen_graph.py -s saved_models/intel -o saved_models/intel
-python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model saved_models/intel/saved_frozen_model.pb --batch_size 512
-```
-
-on the saved graph from the above line.  On larger sample data set sizes and more complex models, the gains will become more obvious and apparent.
-
-
-#### Post Training Optimization with Intel® Neural Compressor
-
-In scenarios where the model or data become very large, such as if there are a huge amount of stores and items, and the model is expanded to capture more complex phenomena, it may be desirable to further optimize the latency and throughput of a model.  For these scenarios, one method can utilize *model quantization* techniques via Intel® Neural Compressor.
-
-Model quantization is the practice of converting the FP32 weights in Deep Neural Networks to a 
-lower precision, such as INT8 in order **to accelerate computation time and reduce storage
-space of trained models**.  This may be useful if latency and throughput are critical.  Intel® 
-offers multiple algorithms and packages for quantizing trained models.  In this reference implementation, we 
-include a script, `run_quantize_inc.py` which can be executed *after saving the frozen graph* to attempt to accuracy-aware quantization on the trained model.
-
-The `run_quantize_inc.py` script takes the following arguments:
-
-```shell
-usage: run_quantize_inc.py [-h] --saved_frozen_graph SAVED_FROZEN_GRAPH --output_dir OUTPUT_DIR --inc_config_file INC_CONFIG_FILE
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --saved_frozen_graph SAVED_FROZEN_GRAPH
-                        saved pretrained frozen graph to quantize
-  --output_dir OUTPUT_DIR
-                        directory to save quantized model.
-  --inc_config_file INC_CONFIG_FILE
-                        INC conf yaml
-```
-
-which can be used as follows:
-
-```shell
-python run_quantize_inc.py --saved_frozen_graph saved_models/intel/saved_frozen_model.pb --output_dir saved_models/intel --inc_config_file conf.yaml
-```
-
-and outputs a quantized model, if successful, to `saved_models/intel/saved_frozen_int8_model.pb`.  This model is typically smaller at a minor cost to accuracy.  In our case, accuracy falls from a RMSE of 7.59 to an RMSE of 7.60.
-
-Inference on this newly quantized model can be performed identically as before, pointing the script to the saved quantized graph.
-
-```shell
-python run_inference.py --input_file ../data/test --saved_frozen_model saved_models/intel/saved_frozen_int8_model.pb --batch_size 512
-```
+Open `GettingStarted.ipynb` and follow the instructions there to perform training and inference on both the Stock and Intel optimized solutions.
 
 ## Performance Observations
 
@@ -344,74 +213,6 @@ Intel technologies may require enabled hardware, software or service activation.
 | Hardware                          | CPU
 | Software                          | Intel® oneAPI Optimizations for Tensorflow v2.10.0, Intel® Neural Compressor v1.13
 | What you will learn               | Intel® oneAPI performance advantage over the stock versions
-
-
-To replicate the performance experiments described above, do the following:
-
-1. Download and setup Anaconda/Miniconda from the following link https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
-
-2. Clone this repo
-   
-    ```bash
-    git clone https://www.github.com/oneapi-src/demand-forecasting
-    ```
-
-3. Generate and setup the dataset following the instructions [here](data).
-
-    ```bash
-    cd data
-    python generate_data.py
-    ```
-
-4. Setup the conda environment for stock and intel using the setupenv.sh script
-
-    ```bash
-    bash setupenv.sh 
-    1
-    bash setupenv.sh 
-    2
-    ```
-
-5. For the stock environment, run the following to run and log results to the ../logs/stock.log file
-   
-    ```
-    cd src
-    conda activate demand_stock
-
-    # Train the model
-    python run_training.py --logfile ../logs/stock.log --save_model_dir ../saved_models/stock --batch_size 512
-
-    # Convert the trained model to a frozen graph
-    python convert_keras_to_frozen_graph.py -s ../saved_models/stock -o ../saved_models/stock
-
-    # Run inference on different batch sizes
-    python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model ../saved_models/stock/saved_frozen_model.pb --batch_size 512 --logfile ../logs/stock.log --benchmark_mode -n 10000
-    python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model ../saved_models/stock/saved_frozen_model.pb --batch_size 10000 --logfile ../logs/stock.log --benchmark_mode -n 1000
-    ```
-
-6. For the intel environment, run the following to run and log results to the ../logs/intel.log file
-  
-    ```
-    cd src
-    conda activate demand_intel
-
-    # Train the model
-    python run_training.py --logfile ../logs/intel.log --save_model_dir ../saved_models/intel --batch_size 512
-
-    # Convert the trained model to a frozen graph
-    python convert_keras_to_frozen_graph.py -s ../saved_models/intel -o ../saved_models/intel
-
-    # Run inference on different batch sizes
-    python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model ../saved_models/intel/saved_frozen_model.pb --batch_size 512 --logfile ../logs/intel.log --benchmark_mode -n 10000
-    python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model ../saved_models/intel/saved_frozen_model.pb --batch_size 10000 --logfile ../logs/intel.log --benchmark_mode -n 1000
-
-    # Quantize the trained model
-    python run_quantize_inc.py --saved_frozen_graph ../saved_models/intel/saved_frozen_model.pb --output_dir ../saved_models/intel --inc_config_file conf.yaml
-
-    # Run inference on the quantized model on different batch sizes
-    python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model ../saved_models/intel/saved_frozen_int8_model.pb --batch_size 512 --logfile ../logs/intel.log --benchmark_mode -n 10000
-    python run_inference.py --input_file ../data/demand/test_full.csv --saved_frozen_model ../saved_models/intel/saved_frozen_int8_model.pb --batch_size 10000 --logfile ../logs/intel.log --benchmark_mode -n 1000
-    ```
 
 ### Known Issues
 
