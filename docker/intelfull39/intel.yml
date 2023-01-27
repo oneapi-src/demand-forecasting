@@ -1,0 +1,6 @@
+name: intel_baseenv
+channels:
+  - intel
+dependencies:
+  - intelpython3_full==2022.2.1
+  - python=3.9

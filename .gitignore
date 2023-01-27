@@ -134,3 +134,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Jupyter Notebooks generated files
+saved_models/
+src/nc_workspace/
+data/demand/

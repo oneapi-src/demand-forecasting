@@ -1,0 +1,27 @@
+version: "3"
+services:
+  devkitminimal:
+    image: devkitminimal
+    build: 
+      context: ./
+      dockerfile: ./minimal/Dockerfile
+    
+  devkitintelfull39:
+    image: devkitintelfull39
+    build: 
+      context: ./intelfull39
+      dockerfile: ./Dockerfile
+    
+  jupyter_server:
+    image: ${USER}/${dir_name}
+    environment:
+      - port=${port}
+    build: 
+      context: ..
+      dockerfile: ./docker/devkit/Dockerfile
+    ports:
+      - "${port}:${port}"
+    volumes:
+      - "${dir_path}:/workspace/devkit"
+    stdin_open: true
+    tty: true 
