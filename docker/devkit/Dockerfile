@@ -1,6 +1,8 @@
 FROM devkitintelfull39
 
 SHELL ["/bin/bash", "-c"] 
+RUN apt-get update && \
+    apt-get install libgl1-mesa-glx libglib2.0-0 gcc -y
 WORKDIR /workspace
 COPY env env
 COPY docker/envinstall_all.sh envinstall_all.sh

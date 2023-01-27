@@ -11,12 +11,6 @@ services:
     build: 
       context: ./intelfull39
       dockerfile: ./Dockerfile
-
-  devkitintelfull39_dl:
-    image: devkitintelfull39_dl
-    build: 
-      context: ./intelfull39_dl
-      dockerfile: ./Dockerfile
     
   jupyter_server:
     image: ${USER}/${dir_name}
