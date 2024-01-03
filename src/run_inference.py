@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
 # pylint: disable=C0415,E0401,R0914,E1129,E0611
@@ -160,16 +160,17 @@ if __name__ == "__main__":
 
     parser.add_argument('-l',
                         '--logfile',
-                        type=str,
                         default="",
+                        type=str,
+                        required=False,
                         help="log file to output benchmarking results to")
 
     parser.add_argument('-s',
                         '--saved_frozen_model',
-                        default=None,
+                        default="",
                         type=str,
-                        required=False,
-                        help="saved frozen graph."
+                        required=True,
+                        help="saved frozen graph"
                         )
 
     parser.add_argument('-b',
@@ -180,17 +181,19 @@ if __name__ == "__main__":
                         help="batch size to use"
                         )
 
-    parser.add_argument(
-        '--input_file',
-        type=str,
-        required=True
+    parser.add_argument('-i',
+                        '--input_file',
+                        default="",
+                        type=str,
+                        required=True,
+                        help="input csv data file"
     )
 
     parser.add_argument(
-        '--benchmark_mode',
-        action="store_true",
-        default=False,
-        help="benchmark inference time"
+                        '--benchmark_mode',
+                        default=False,
+                        action="store_true",
+                        help="benchmark inference time"
     )
 
     parser.add_argument('-n',

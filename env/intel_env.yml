@@ -1,0 +1,7 @@
+name: demand_forecasting_intel
+channels:
+  - intel
+  - conda-forge
+dependencies:
+  - python=3.9
+  - intel-aikit-tensorflow=2024.0

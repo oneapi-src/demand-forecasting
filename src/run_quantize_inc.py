@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
 # pylint: disable=C0415,E0401,R0914,C0115,C0116
@@ -31,9 +31,9 @@ tf.keras.utils.set_random_seed(5)
 
 class Dataset:
 
-    def __init__(self):
+    def __init__(self, input_csv):
 
-        train = read_data('../data/demand/train.csv')
+        train = read_data(input_csv)
 
         series, labels = series_to_supervised(
             train,
@@ -138,7 +138,7 @@ def main(flags) -> None:
         print("INC configuration %s not found!", flags.inc_config_file)
         return
 
-    dataset = Dataset()
+    dataset = Dataset(flags.input_csv)
     quantized_model = quantize_model(
         flags.saved_frozen_graph, dataset, flags.inc_config_file)
 
@@ -163,13 +163,19 @@ if __name__ == '__main__':
     parser.add_argument(
         '--output_dir',
         required=True,
-        help="directory to save quantized model.",
+        help="directory to save quantized model",
         type=str
     )
 
     parser.add_argument(
         '--inc_config_file',
         help="INC conf yaml",
+        required=True
+    )
+
+    parser.add_argument(
+        '--input_csv',
+        help="input csv dataset file path",
         required=True
     )
 

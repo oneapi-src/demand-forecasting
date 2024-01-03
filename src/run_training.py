@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
 # pylint: disable=C0415,E0401,R0914,E0611
@@ -54,11 +54,11 @@ def main(flags):
     epochs = 10
 
     # create training and validation datasets
-    if not os.path.exists("../data/demand/train.csv"):
-        print("Data file ../data/demand/train.csv not found")
+    if not os.path.exists(flags.input_csv):
+        print(f"Data file {flags.input_csv} not found")
         return
 
-    train = read_data('../data/demand/train.csv')
+    train = read_data(flags.input_csv)
     series, labels = series_to_supervised(
         train,
         window=window,
@@ -80,7 +80,7 @@ def main(flags):
 
     # compile the model
     model = get_cnn_lstm(x_train_sub)
-    optimizer = tf.keras.optimizers.Adam(lr=1e-4)
+    optimizer = tf.keras.optimizers.legacy.Adam(lr=1e-4)
     model.compile(loss='mse', optimizer=optimizer)
     model.summary()
     logger.info(
@@ -101,8 +101,8 @@ def main(flags):
     )
     end = time.time()
 
-    train_pred = model.predict(x_train_sub, batch_size=512)
-    valid_pred = model.predict(x_valid_sub, batch_size=512)
+    train_pred = model.predict(x_train_sub, batch_size=flags.batch_size)
+    valid_pred = model.predict(x_valid_sub, batch_size=flags.batch_size)
     logger.info(
         '======> Train RMSE: %.4f',
         np.sqrt(mean_squared_error(y_train_sub, train_pred))
@@ -117,7 +117,7 @@ def main(flags):
         end - start
     )
 
-    if flags.save_model_dir is not None:
+    if flags.save_model_dir != "":
         path = pathlib.Path(flags.save_model_dir)
         path.mkdir(parents=True, exist_ok=True)
         logger.info("Saving model...")
@@ -130,13 +130,14 @@ if __name__ == "__main__":
 
     parser.add_argument('-l',
                         '--logfile',
-                        type=str,
                         default="",
+                        type=str,
+                        required=False,
                         help="log file to output benchmarking results to")
 
     parser.add_argument('-s',
                         '--save_model_dir',
-                        default=None,
+                        default="",
                         type=str,
                         required=False,
                         help="directory to save model to"
@@ -149,6 +150,13 @@ if __name__ == "__main__":
                         type=int,
                         help="training batch size"
                         )
+
+    parser.add_argument('-i',
+                        '--input_csv',
+                        default="",
+                        type=str,
+                        required=True,
+                        help="input csv file path")
 
     FLAGS = parser.parse_args()
     main(FLAGS)

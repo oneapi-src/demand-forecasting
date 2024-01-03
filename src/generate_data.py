@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
 # pylint: disable=C0415,E0401,R0914,W0102
@@ -11,9 +11,10 @@ Generate a time series dataset with store and item level effects
 """
 
 import pathlib
-
 import numpy as np
 import pandas as pd
+import argparse
+import os
 
 np.random.seed(0)
 
@@ -73,6 +74,15 @@ def main():
     #   Store level variance, Store level baseline sales
     # Item level:
     #   Item level base sales, trend
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o',
+                        '--output_dir',
+                        type=str,
+                        required=True,
+                        help="directory to save generated data to")
+    FLAGS = parser.parse_args()
+    FLAGS.output_dir
     store_level_variance = [np.random.normal(4, 0.5) for _ in range(10)]
     store_level_baseline_offset = [
         np.round(np.random.normal(0, 8)) for _ in range(10)]
@@ -118,9 +128,9 @@ def main():
     final_df = pd.concat(new_data)
     pred_df = pd.concat(pred_data)
 
-    pathlib.Path("demand").mkdir(parents=True, exist_ok=True)
-    final_df.to_csv("demand/train.csv", index=False)
-    pred_df.to_csv("demand/test_full.csv", index=False)
+    pathlib.Path(FLAGS.output_dir).mkdir(parents=True, exist_ok=True)
+    final_df.to_csv(os.path.join(FLAGS.output_dir, "train.csv"), index=False)
+    pred_df.to_csv(os.path.join(FLAGS.output_dir, "test_full.csv"), index=False)
 
 
 if __name__ == "__main__":

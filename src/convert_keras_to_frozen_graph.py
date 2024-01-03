@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
 # pylint: disable=C0415,E0401,R0914,E0611,W0108
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                         default=None,
                         type=str,
                         required=True,
-                        help="directory with saved keras model."
+                        help="directory with saved keras model"
                         )
 
     parser.add_argument('-o',
@@ -61,7 +61,7 @@ if __name__ == "__main__":
                         default=None,
                         type=str,
                         required=True,
-                        help="directory to save frozen graph to."
+                        help="directory to save frozen graph to"
                         )
 
     FLAGS = parser.parse_args()
