@@ -147,7 +147,7 @@ The [env/intel_env.yml](./env/intel_env.yml) file contains all dependencies to c
 | **Packages required in YAML file**| **Version**
 | :---                              | :--
 | python                            | 3.9
-| intel-aikit-tensorflow            | 2024.0 
+| intel-aikit-tensorflow            | 2024.1
 
  Execute next command to create the conda environment.
 

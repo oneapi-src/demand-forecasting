@@ -4,4 +4,4 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - intel-aikit-tensorflow=2024.0
+  - intel-aikit-tensorflow=2024.1
